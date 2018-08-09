@@ -1,0 +1,66 @@
+= Stop
+
+A `go` library that provides a 2-way communication method that helps programs gracefully halt.
+
+== Use cases
+
+=== Kubernetes pods
+
+Kubernetes provides a way to gracefully shutdown pods using a https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/#hook-details[pre-stop hook]; `stop` can be used to communicate the hook to any `go` application.
+
+== How it works
+
+This library uses 2 files as signals - `process.stop` to signal that an application needs to stop and `process.stopped` to signal that the application has successfully stopped.
+
+The `go` application watches for the stop signal file.
+When executed, the `stop` command creates the stop signal file, and then watches for the stopped signal with a 30-second timeout.
+
+Once the `go` application finds the stop signal, it performs all shutdown operations and creates the stopped signal.
+
+The `stop` command finds the stopped signal and returns a successful exit code.
+
+```
+                                               ------------------
+              Watch for /tmp/process.stop <--- | go application |
+                           |                   ------------------
+                           |
+------------              \|/
+| stop cmd | ---> Create /tmp/process.stop
+------------               |
+                           |
+------------              \|/
+| stop cmd | ---> Watch for /tmp/process.stopped
+------------               |
+                           |
+                          \|/                  ------------------
+                   Find /tmp/process.stop ---> | go application |
+                           |                   ------------------
+                           |
+                          \|/                  ------------------
+                     /tmp/process.stopped <--- | go application |
+                           |                   ------------------
+                           |
+------------              \|/
+| stop cmd | <--- Find /tmp/process.stopped
+------------
+```
+
+== Usage
+
+=== Application
+
+```
+import "github.com/noamt/stop"
+
+stopChannel := make(chan string)
+stop.ListenForStopSignal(stopChannel)
+
+_ = <-stopChannel
+// Do stuff
+stop.SignalThatProcessHasStopped()
+```
+
+=== Stop command
+```
+./stop
+```
