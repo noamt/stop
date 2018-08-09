@@ -37,7 +37,7 @@ The `stop` command finds the stopped signal and returns a successful exit code.
                            |                   ------------------
                            |
                           \|/                  ------------------
-                     /tmp/process.stopped <--- | go application |
+              Create /tmp/process.stopped <--- | go application |
                            |                   ------------------
                            |
 ------------              \|/
