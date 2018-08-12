@@ -12,9 +12,13 @@ const stopProcessFileName = "process.stop"
 const processStoppedFileName = "process.stopped"
 const Signal = "stop"
 
-func SendStopSignalAndWait(stopChannel chan string) {
-	sendStopSignal()
+func SendStopSignalAndWait(stopChannel chan string) error {
+	signalError := sendStopSignal()
+	if signalError != nil {
+		return signalError
+	}
 	go waitForProcessToStop(stopChannel)
+	return nil
 }
 
 func ListenForStopSignal(c chan<- string) {
@@ -29,22 +33,24 @@ func ListenForStopSignal(c chan<- string) {
 				log.Println("Found stop signal:", stopProcessFile)
 				c <- Signal
 				checkForSignal = false
+			} else if !os.IsNotExist(err) {
+				log.Fatalf("Error while testing for the existence of the stop signal %s: %v", stopProcessFile, err)
 			}
 		}
 	}()
 }
 
-func SignalThatProcessHasStopped() {
+func SignalThatProcessHasStopped() error {
 	tempDir := os.TempDir()
 	processStoppedFile := filepath.Join(tempDir, processStoppedFileName)
-	ioutil.WriteFile(processStoppedFile, []byte{}, 600)
+	return ioutil.WriteFile(processStoppedFile, []byte{}, 600)
 }
 
-func sendStopSignal() {
+func sendStopSignal() error {
 	tempDir := os.TempDir()
 	stopProcessFile := filepath.Join(tempDir, stopProcessFileName)
 	log.Println("Received stop command. Writing message to", stopProcessFile)
-	ioutil.WriteFile(stopProcessFile, []byte{}, 600)
+	return ioutil.WriteFile(stopProcessFile, []byte{}, 600)
 }
 
 func waitForProcessToStop(stopChannel chan string) {
@@ -54,8 +60,11 @@ func waitForProcessToStop(stopChannel chan string) {
 	var stopped bool
 	for !stopped {
 		time.Sleep(time.Second * 2)
-		_, err := os.Stat(processStoppedFile)
-		stopped = err == nil
+		if _, err := os.Stat(processStoppedFile); err == nil {
+			stopped = true
+		} else if !os.IsNotExist(err) {
+			log.Fatalf("Error while testing for the existence of the stopped signal %s: %v", processStoppedFile, err)
+		}
 	}
 	stopChannel <- Signal
 }

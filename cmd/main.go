@@ -8,7 +8,10 @@ import (
 
 func main() {
 	stopChannel := make(chan string)
-	stop.SendStopSignalAndWait(stopChannel)
+	signalError := stop.SendStopSignalAndWait(stopChannel)
+	if signalError != nil {
+		log.Fatalf("Error while signalling to stop %v", signalError)
+	}
 	select {
 	case stopMessage := <-stopChannel:
 		log.Println(stopMessage)
