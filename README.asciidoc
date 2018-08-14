@@ -37,7 +37,7 @@ The `stop` command finds the stopped signal and returns a successful exit code.
                            |                   ------------------
                            |
                           \|/                  ------------------
-                     /tmp/process.stopped <--- | go application |
+              Create /tmp/process.stopped <--- | go application |
                            |                   ------------------
                            |
 ------------              \|/
@@ -49,7 +49,8 @@ The `stop` command finds the stopped signal and returns a successful exit code.
 
 === Application
 
-```
+[source,go]
+----
 import "github.com/noamt/stop"
 
 stopChannel := make(chan string)
@@ -58,7 +59,7 @@ stop.ListenForStopSignal(stopChannel)
 _ = <-stopChannel
 // Do stuff
 stop.SignalThatProcessHasStopped()
-```
+----
 
 === Stop command
 ```
