@@ -1,10 +1,10 @@
 package stop
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"io/ioutil"
 	"time"
 )
 
@@ -29,6 +29,7 @@ func ListenForStopSignal(c chan<- string) {
 		stopProcessFile := filepath.Join(tempDir, stopProcessFileName)
 
 		for checkForSignal {
+			time.Sleep(time.Second * 2)
 			if _, err := os.Stat(stopProcessFile); err == nil {
 				log.Println("Found stop signal:", stopProcessFile)
 				c <- Signal
