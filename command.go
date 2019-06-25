@@ -26,8 +26,8 @@ func SendStopSignalAndWait(stopChannel chan string) error {
 
 //This method should be called by the application that wants to handle the halt process.
 //It returns a channel on which the caller can wait, until a stop signal is found.
-func ListenForStopSignal() chan<- string {
-	c := make(chan<- string)
+func ListenForStopSignal() <-chan string {
+	c := make(chan string)
 	go func() {
 		log.Println("Starting stop signal listener")
 		checkForSignal := true

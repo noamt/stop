@@ -56,8 +56,7 @@ func TestReceiveStopSignal(t *testing.T) {
 	os.Remove(stopProcessPath)
 	defer os.Remove(stopProcessPath)
 
-	stopChannel := make(chan string)
-	ListenForStopSignal(stopChannel)
+	stopChannel := ListenForStopSignal()
 
 	ioutil.WriteFile(stopProcessPath, []byte{}, 600)
 
