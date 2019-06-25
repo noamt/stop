@@ -12,6 +12,9 @@ const stopProcessFileName = "process.stop"
 const processStoppedFileName = "process.stopped"
 const Signal = "stop"
 
+//This method is called by the custom stop command.
+//It expects to receive a channel on which the caller can wait.
+//It return any error that might occur while sending the signal
 func SendStopSignalAndWait(stopChannel chan string) error {
 	signalError := sendStopSignal()
 	if signalError != nil {
@@ -21,7 +24,10 @@ func SendStopSignalAndWait(stopChannel chan string) error {
 	return nil
 }
 
-func ListenForStopSignal(c chan<- string) {
+//This method should be called by the application that wants to handle the halt process.
+//It returns a channel on which the caller can wait, until a stop signal is found.
+func ListenForStopSignal() chan<- string {
+	c := make(chan<- string)
 	go func() {
 		log.Println("Starting stop signal listener")
 		checkForSignal := true
@@ -39,8 +45,10 @@ func ListenForStopSignal(c chan<- string) {
 			}
 		}
 	}()
+	return c
 }
 
+//This method should be called by the application once it has finished cleaning up, and is ready to shutdown
 func SignalThatProcessHasStopped() error {
 	tempDir := os.TempDir()
 	processStoppedFile := filepath.Join(tempDir, processStoppedFileName)
